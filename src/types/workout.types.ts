@@ -46,6 +46,7 @@ export interface ExerciseProgress {
 
 export interface WorkoutProgress {
   workoutId: string;
+  completedAt?: string;
   exercisesProgress: ExerciseProgress[];
 }
 

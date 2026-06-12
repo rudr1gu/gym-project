@@ -45,6 +45,27 @@ export const saveWorkoutProgress = (workoutProgress: WorkoutProgress): void => {
   saveProgress(progress);
 };
 
+export const updateWorkoutCompletion = (
+  workoutId: string,
+  isCompleted: boolean
+): void => {
+  const progress = getProgress();
+  const workoutProgress = progress.workoutsProgress.find((w) => w.workoutId === workoutId);
+
+  if (!workoutProgress) return;
+
+  if (isCompleted && !workoutProgress.completedAt) {
+    workoutProgress.completedAt = new Date().toISOString();
+    saveProgress(progress);
+    return;
+  }
+
+  if (!isCompleted && workoutProgress.completedAt) {
+    delete workoutProgress.completedAt;
+    saveProgress(progress);
+  }
+};
+
 export const updateExerciseProgress = (
   workoutId: string,
   exerciseId: string,
