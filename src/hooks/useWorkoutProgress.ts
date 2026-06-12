@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { WorkoutProgress, ExerciseProgress, WeeklyProgress } from '../types/workout.types';
+import { getWorkoutById } from '../data/workouts.mock';
 import {
   getProgress,
   getWorkoutProgress as getStoredWorkoutProgress,
   updateExerciseProgress,
+  updateWorkoutCompletion,
   resetProgress as resetStoredProgress,
   resetWorkoutProgress as resetStoredWorkoutProgress,
 } from '../services/workoutStorage.service';
-import { calculateWeeklyStats } from '../utils/workoutProgress';
+import { calculateWeeklyStats, isWorkoutCompleted } from '../utils/workoutProgress';
 
 export const useWorkoutProgress = (workoutId?: string) => {
   const [progress, setProgress] = useState<WeeklyProgress | null>(null);
@@ -29,6 +31,16 @@ export const useWorkoutProgress = (workoutId?: string) => {
 
       updateExerciseProgress(workoutId, exerciseId, updates);
 
+      const updatedWorkoutProgress = getStoredWorkoutProgress(workoutId);
+      const workout = getWorkoutById(workoutId);
+
+      if (workout && updatedWorkoutProgress) {
+        updateWorkoutCompletion(
+          workoutId,
+          isWorkoutCompleted(workout, updatedWorkoutProgress)
+        );
+      }
+
       const newProgress = getProgress();
       setProgress(newProgress);
       setWorkoutProgress(getStoredWorkoutProgress(workoutId));
@@ -38,9 +50,7 @@ export const useWorkoutProgress = (workoutId?: string) => {
 
   const toggleExerciseCompleted = useCallback(
     (exerciseId: string) => {
-      if (!workoutProgress) return;
-
-      const currentEx = workoutProgress.exercisesProgress.find(
+      const currentEx = workoutProgress?.exercisesProgress.find(
         (e) => e.exerciseId === exerciseId
       );
       const newCompleted = !(currentEx?.completed ?? false);
